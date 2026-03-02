@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tigres Volants – Fiche de Personnage</title>
+  <style>
+    :root {
+      --bg:        #12121c;
+      --bg2:       #1a1a2e;
+      --bg3:       #0d1b3e;
+      --panel:     #1e1e30;
+      --border:    #2a2a45;
+      --accent:    #e63946;
+      --accent2:   #7b5ea7;
+      --gold:      #c9a84c;
+      --text:      #e8e8f0;
+      --text-dim:  #6e6e90;
+      --input-bg:  #0d0d1a;
+      --readonly:  #1a3050;
+      --readonly-text: #5bbfff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      padding: 24px 0 20px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .25em;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--gold) 50%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+    }
+
+    header p {
+      color: var(--text-dim);
+      font-size: .75rem;
+      letter-spacing: .15em;
+      margin-top: 6px;
+    }
+
+    /* ── Tab navigation ── */
+    .tab-nav {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 4px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+
+    /* ── Gear button ── */
+    .gear-wrap {
+      position: relative;
+      margin-left: auto;
+      align-self: center;
+    }
+    .gear-btn {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background .2s;
+      line-height: 1;
+    }
+    .gear-btn:hover { background: var(--bg2); }
+
+    /* ── Settings dropdown ── */
+    .settings-panel {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      min-width: 200px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.5);
+      z-index: 500;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .settings-panel.open { display: flex; }
+
+    .settings-item {
+      background: none;
+      border: none;
+      color: var(--text);
+      text-align: left;
+      padding: 8px 12px;
+      font-size: .82rem;
+      font-weight: 500;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background .15s;
+      font-family: inherit;
+      width: 100%;
+    }
+    .settings-item:hover { background: var(--bg2); }
+    .settings-item.danger { color: var(--accent); }
+    .settings-item.danger:hover { background: rgba(230,57,70,.1); }
+
+    .settings-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+
+    /* ── Auto-save indicator ── */
+    .autosave-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #4caf82;
+      margin-left: 4px;
+      opacity: 0;
+      transition: opacity .3s;
+      vertical-align: middle;
+    }
+    .autosave-dot.visible { opacity: 1; }
+
+    .tab-btn {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      color: var(--text-dim);
+      border-radius: 6px 6px 0 0;
+      padding: 9px 24px;
+      font-size: .82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .tab-btn.active {
+      background: var(--accent2);
+      color: #fff;
+      border-color: var(--accent2);
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: var(--text);
+      background: var(--bg2);
+    }
+
+    /* ── Pages ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── Section wrapper ── */
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: .78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--accent);
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .section-title .note {
+      font-weight: 400;
+      text-transform: none;
+      color: var(--text-dim);
+      font-size: .7rem;
+      letter-spacing: 0;
+    }
+
+    /* ── Inputs ── */
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 5px;
+      padding: 5px 8px;
+      font-size: .88rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .18s, background .18s;
+    }
+
+    input:focus,
+    textarea:focus { border-color: var(--accent2); background: #0f0f20; }
+
+    input[readonly] {
+      background: var(--readonly);
+      color: var(--readonly-text);
+      font-weight: 700;
+      border-color: #1a3060;
+      cursor: default;
+    }
+
+    input[type="number"] { text-align: center; -moz-appearance: textfield; }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    textarea { resize: vertical; min-height: 80px; width: 100%; }
+
+    .field { display: flex; flex-direction: column; gap: 3px; }
+    .field label { font-size: .67rem; text-transform: uppercase; letter-spacing: .07em; color: var(--text-dim); }
+
+    /* ── Grid helpers ── */
+    .grid-auto { display: grid; gap: 10px; align-items: start; }
+    .two-col    { grid-template-columns: 1fr 1fr; }
+    .three-col  { grid-template-columns: 1fr 1fr 1fr; }
+    .five-col   { grid-template-columns: repeat(5, 1fr); }
+
+    @media (max-width: 700px) {
+      .two-col   { grid-template-columns: 1fr; }
+      .three-col { grid-template-columns: 1fr 1fr; }
+      .five-col  { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ── Identity ── */
+    .identity-row { display: grid; gap: 10px; }
+    .identity-row.r1 { grid-template-columns: 2.5fr 1fr 0.6fr; }
+    .identity-row.r2 { grid-template-columns: 1fr 1.5fr 1fr; }
+    .identity-row.r3 { grid-template-columns: repeat(5, 1fr); }
+
+    @media (max-width: 600px) {
+      .identity-row.r1,
+      .identity-row.r2,
+      .identity-row.r3 { grid-template-columns: 1fr 1fr; }
+    }
+
+    .identity-row input[type="text"] { width: 100%; }
+
+    /* ── Aspect cards ── */
+    .aspects-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    @media (max-width: 480px) { .aspects-grid { grid-template-columns: 1fr; } }
+
+    .aspect-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .abbr-badge {
+      font-size: .7rem;
+      font-weight: 800;
+      color: var(--bg);
+      background: var(--accent);
+      border-radius: 4px;
+      padding: 3px 6px;
+      min-width: 34px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .abbr-badge.blue { background: var(--accent2); }
+    .abbr-badge.gold { background: var(--gold); color: #1a1000; }
+
+    .aspect-card .name { flex: 1; font-size: .85rem; font-weight: 600; }
+    .aspect-card .formula { font-size: .62rem; color: var(--text-dim); }
+    .aspect-card input[type="number"] { width: 56px; }
+
+    /* ── Char cards ── */
+    .chars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    @media (max-width: 480px) { .chars-grid { grid-template-columns: 1fr 1fr; } }
+
+    .char-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .char-card .top { display: flex; align-items: center; gap: 8px; }
+    .char-card .name { font-size: .88rem; font-weight: 600; }
+    .char-card .formula { font-size: .62rem; color: var(--text-dim); }
+    .char-card input[type="number"] { width: 100%; font-size: 1.1rem; font-weight: 700; }
+
+    /* ── Autres ── */
+    .autres-flex { display: flex; flex-direction: column; gap: 10px; }
+
+    .autre-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .autre-card .info { display: flex; flex-direction: column; }
+    .autre-card .info .name { font-size: .85rem; font-weight: 600; }
+    .autre-card .info .sub  { font-size: .62rem; color: var(--text-dim); }
+    .autre-card input[type="number"] { width: 60px; }
+
+    /* ── Sens ── */
+    .sens-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+
+    .sens-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 7px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .sens-card .name { flex: 1; font-size: .83rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sens-card input  { width: 50px; flex-shrink: 0; }
+
+    /* ── Niveau social ── */
+    .social-rows { display: flex; flex-direction: column; gap: 8px; }
+    .social-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .social-row label { font-size: .85rem; }
+    .social-row input { width: 90px; }
+
+    /* ── Prevent grid children from overflowing their cells ── */
+    .grid-auto > *, .talents-grid > * { min-width: 0; }
+
+    /* ── Talents ── */
+    .talents-formula {
+      font-size: .7rem;
+      color: var(--text-dim);
+      margin-bottom: 14px;
+      background: var(--bg2);
+      border-radius: 5px;
+      padding: 7px 10px;
+      border-left: 3px solid var(--gold);
+    }
+
+    .talents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 12px; }
+
+    /* ── Talents filter bar ── */
+    .talents-filter {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .talents-filter input[type="text"] {
+      flex: 1;
+      min-width: 180px;
+      padding: 7px 12px;
+      font-size: .85rem;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+    }
+
+    .talents-filter input[type="text"]:focus {
+      border-color: var(--accent2);
+      background: #0f0f20;
+    }
+
+    .talents-filter label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .78rem;
+      color: var(--text-dim);
+      cursor: pointer;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .talents-filter input[type="checkbox"] {
+      accent-color: var(--accent2);
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+
+    .t-cat.hidden-cat { display: none; }
+    .t-row.hidden-row { display: none; }
+
+    /* ── NF Card ── */
+    #nf-card {
+      position: relative;
+      transition: border-color .3s, background .3s;
+    }
+    #nf-card.nf-1 { border-color: var(--gold); }
+    #nf-card.nf-2 { border-color: #e08820; }
+    #nf-card.nf-3 { border-color: var(--accent); background: rgba(230,57,70,.09); }
+
+    .nf-tooltip {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 0;
+      width: 270px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: .75rem;
+      line-height: 1.55;
+      color: var(--text);
+      box-shadow: 0 6px 24px rgba(0,0,0,.55);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .18s;
+      z-index: 200;
+    }
+    #nf-card:hover .nf-tooltip { opacity: 1; }
+
+    .nf-tt-state {
+      font-size: .88rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .nf-tt-rule {
+      margin-top: 8px;
+      padding-top: 7px;
+      border-top: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: .7rem;
+      line-height: 1.6;
+    }
+
+    @keyframes talent-pulse {
+      0%   { background: transparent; }
+      20%  { background: rgba(201,168,76,.45); }
+      45%  { background: rgba(201,168,76,.12); }
+      65%  { background: rgba(201,168,76,.40); }
+      85%  { background: rgba(201,168,76,.12); }
+      100% { background: rgba(201,168,76,.18); }
+    }
+
+    .t-row.t-highlight {
+      border-radius: 4px;
+      animation: talent-pulse .9s ease forwards;
+      background: rgba(201,168,76,.18);
+      outline: 1px solid rgba(201,168,76,.35);
+    }
+
+    .t-row.t-dim {
+      opacity: .28;
+      transition: opacity .15s;
+    }
+
+    .t-cat {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .t-cat-title {
+      font-size: .78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--gold);
+      margin-bottom: 2px;
+    }
+
+    .t-cat-sub {
+      font-size: .63rem;
+      color: var(--text-dim);
+      margin-bottom: 9px;
+    }
+
+    .t-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 0;
+      border-bottom: 1px solid #1e1e30;
+    }
+
+    .t-row:last-child { border-bottom: none; }
+
+    .t-name {
+      flex: 1;
+      font-size: .78rem;
+      white-space: nowrap;
+    }
+
+    .t-name-input {
+      flex: 1;
+      font-size: .78rem !important;
+      padding: 2px 5px !important;
+      min-width: 0;
+    }
+
+    .t-caract { font-size: .62rem; color: var(--accent2); flex-shrink: 0; }
+
+    .t-num {
+      width: 42px !important;
+      font-size: .78rem !important;
+      padding: 2px 4px !important;
+    }
+
+    .t-score {
+      width: 42px !important;
+      font-size: .78rem !important;
+      font-weight: 700 !important;
+      padding: 2px 4px !important;
+      color: var(--readonly-text) !important;
+    }
+
+    .t-op { font-size: .72rem; color: var(--text-dim); flex-shrink: 0; }
+
+    /* ── Arcanes note ── */
+    .arcane-note {
+      font-size: .63rem;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    /* ── Points tracker ── */
+    .pts-tracker {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .pts-item { display: flex; align-items: center; gap: 8px; }
+    .pts-item label { font-size: .72rem; color: var(--text-dim); }
+    .pts-item .pts-val { font-size: 1rem; font-weight: 700; }
+    .pts-item .pts-val.ok  { color: #4caf82; }
+    .pts-item .pts-val.warn { color: var(--gold); }
+    .pts-item .pts-val.bad  { color: var(--accent); }
+
+    /* ══════════════════════════════════════════════════════
+       PAGE 2 STYLES
+    ══════════════════════════════════════════════════════ */
+
+    /* ── Page 2 two-column layout ── */
+    .p2-grid {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    @media (max-width: 800px) {
+      .p2-grid { grid-template-columns: 1fr; }
+    }
+
+    .p2-grid > * { min-width: 0; }
+
+    /* ── Équipement textarea ── */
+    .equip-textarea {
+      min-height: 620px;
+      width: 100%;
+      font-size: .85rem;
+      line-height: 1.5;
+    }
+
+    /* ── Points de création ── */
+    .pts-creation-row {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .pts-creation-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pts-creation-item input {
+      width: 100%;
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 700;
+      padding: 10px 4px;
+    }
+
+    /* ── Breakdown dépenses ── */
+    .pts-breakdown {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .pts-bk-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .pts-bk-label {
+      font-size: .63rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+
+    .pts-bk-val {
+      font-size: .92rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .pts-bk-sep {
+      color: var(--text-dim);
+      font-size: 1rem;
+      font-weight: 300;
+      line-height: 1;
+      padding-bottom: 14px;
+    }
+
+    .pts-bk-restants {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      margin-left: 4px;
+    }
+
+    .pts-bk-restants .pts-bk-val {
+      font-size: 1.4rem;
+      font-weight: 900;
+    }
+
+    .pts-bk-val.ok   { color: #4caf82; }
+    .pts-bk-val.warn { color: var(--gold); }
+    .pts-bk-val.bad  { color: var(--accent); }
+
+    .pts-creation-item label {
+      font-size: .72rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      font-weight: 600;
+    }
+
+    /* ── Description + Portrait ── */
+    .desc-portrait-grid {
+      display: grid;
+      grid-template-columns: 1fr 150px;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .desc-portrait-grid textarea {
+      min-height: 190px;
+    }
+
+    .portrait-zone {
+      border: 2px dashed var(--border);
+      border-radius: 6px;
+      height: 190px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      overflow: hidden;
+      position: relative;
+      background: var(--bg2);
+      user-select: none;
+    }
+
+    .portrait-zone:hover {
+      border-color: var(--accent2);
+      background: #1e1e3a;
+    }
+
+    #portrait-placeholder {
+      font-size: .75rem;
+      color: var(--text-dim);
+      text-align: center;
+      line-height: 2;
+      pointer-events: none;
+    }
+
+    #portrait-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 4px;
+      position: absolute;
+      top: 0; left: 0;
+      display: none;
+    }
+
+    .portrait-clear {
+      position: absolute;
+      top: 4px; right: 4px;
+      background: rgba(0,0,0,.6);
+      border: none;
+      color: #fff;
+      border-radius: 50%;
+      width: 22px; height: 22px;
+      font-size: .7rem;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .portrait-zone:hover .portrait-clear { display: flex; }
+
+    /* ── Data tables ── */
+    .table-wrap { overflow-x: auto; }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .8rem;
+    }
+
+    .data-table th {
+      background: var(--bg3);
+      color: var(--text-dim);
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: 7px 4px;
+      text-align: center;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .data-table th.th-nom { text-align: left; padding-left: 8px; }
+
+    .data-table td {
+      padding: 2px 2px;
+      border-bottom: 1px solid #1e1e30;
+      vertical-align: middle;
+    }
+
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:nth-child(even) td { background: rgba(255,255,255,.025); }
+
+    .data-table input[type="text"],
+    .data-table input[type="number"] {
+      border: 1px solid transparent;
+      border-radius: 3px;
+      background: transparent;
+      color: var(--text);
+      padding: 5px 4px;
+      width: 100%;
+      font-size: .8rem;
+      font-family: inherit;
+      transition: border-color .15s, background .15s;
+    }
+
+    .data-table input:focus {
+      background: var(--input-bg);
+      border-color: var(--accent2);
+      outline: none;
+    }
+
+    .data-table .td-nom  { min-width: 140px; }
+    .data-table .td-num  { width: 52px; }
+    .data-table .td-med  { width: 72px; }
+    .data-table .td-util { width: 68px; background: rgba(230,57,70,.07); }
+
+    /* ── Mobile responsive fixes ── */
+    @media (max-width: 480px) {
+      body { padding: 8px; }
+      .desc-portrait-grid { grid-template-columns: 1fr; }
+      .portrait-zone { height: 140px; }
+    }
+
+    @media (max-width: 600px) {
+
+      .identity-row.r3 { grid-template-columns: 1fr 1fr 1fr; }
+      .pts-creation-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <h1>Tigres Volants</h1>
+  <p>www.tigres-volants.org &nbsp;·&nbsp; Fiche de Personnage Interactive</p>
+</header>
+
+<!-- ── TAB NAVIGATION ── -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="showPage(1)">Statistiques</button>
+  <button class="tab-btn" onclick="showPage(2)">Personnage</button>
+
+  <div class="gear-wrap" id="gear-wrap">
+    <button class="gear-btn" onclick="toggleSettings()" title="Paramètres">
+      ⚙️<span class="autosave-dot" id="autosave-dot"></span>
+    </button>
+    <div class="settings-panel" id="settings-panel">
+      <button class="settings-item" onclick="forceSave()">💾 Forcer la sauvegarde</button>
+      <button class="settings-item" onclick="exportJSON()">📤 Exporter (JSON)</button>
+      <label class="settings-item" style="cursor:pointer">
+        📥 Importer
+        <input type="file" id="import-input" accept=".json" style="display:none" onchange="importJSON(this)">
+      </label>
+      <div class="settings-divider"></div>
+      <button class="settings-item danger" onclick="resetSheet()">🗑 Réinitialiser</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE 1
+══════════════════════════════════════════════════════ -->
+<div id="page1" class="page active">
+
+  <!-- ── POINTS DE CRÉATION ── -->
+  <div class="section">
+    <div class="section-title">Points de création <span class="note">(#)</span></div>
+    <div class="pts-creation-row">
+      <div class="pts-creation-item">
+        <input type="number" id="pc_initiaux" placeholder="400" min="0" oninput="updateCreationTracker()">
+        <label>Initiaux</label>
+      </div>
+      <div class="pts-creation-item">
+        <input type="number" id="pc_experience" placeholder="0" min="0" oninput="updateCreationTracker()">
+        <label>Expérience</label>
+      </div>
+    </div>
+    <div class="pts-breakdown">
+      <div class="pts-bk-item">
+        <span class="pts-bk-val" id="pts-budget">400 #</span>
+        <span class="pts-bk-label">Budget</span>
+      </div>
+      <span class="pts-bk-sep">−</span>
+      <div class="pts-bk-item">
+        <span class="pts-bk-val" id="pts-aspects-cost">0 #</span>
+        <span class="pts-bk-label">Aspects</span>
+      </div>
+      <span class="pts-bk-sep">−</span>
+      <div class="pts-bk-item">
+        <span class="pts-bk-val" id="pts-talents-cost">0 #</span>
+        <span class="pts-bk-label">Talents</span>
+      </div>
+      <span class="pts-bk-sep">=</span>
+      <div class="pts-bk-item pts-bk-restants">
+        <span class="pts-bk-val ok" id="pts-remaining">400 #</span>
+        <span class="pts-bk-label">Restants</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STATS BLOCK : Aspects+Autres | Caractéristiques+Sens ── -->
+  <div class="grid-auto two-col" style="margin-bottom:12px; align-items: stretch;">
+
+    <!-- Colonne gauche : Aspects + Autres -->
+    <div style="display:flex;flex-direction:column;gap:12px;height:100%;">
+
+      <div class="section">
+        <div class="section-title">Aspects &amp; Qualités
+          <span class="note">6# = 1 pt. &nbsp;·&nbsp; MAX: 12</span>
+        </div>
+        <div class="aspects-grid" id="aspects-grid"></div>
+      </div>
+
+      <div class="section" style="flex:1;">
+        <div class="section-title">Autres</div>
+        <div class="autres-flex">
+          <div class="autre-card">
+            <div class="abbr-badge gold">RX</div>
+            <div class="info">
+              <span class="name">Réflexes</span>
+              <span class="sub">= Agilité</span>
+            </div>
+            <input type="number" id="rx" readonly placeholder="0" min="0">
+          </div>
+          <div class="autre-card">
+            <div class="abbr-badge gold">FV</div>
+            <div class="info">
+              <span class="name">Force vitale</span>
+              <span class="sub">= Constitution</span>
+            </div>
+            <input type="number" id="fv" readonly placeholder="0" min="0">
+          </div>
+          <div class="autre-card" id="nf-card">
+            <div class="abbr-badge gold">NF</div>
+            <div class="info">
+              <span class="name">Niveaux de fatigue</span>
+              <span class="sub" id="nf-status">Pleine forme</span>
+            </div>
+            <input type="number" id="nf" value="0" min="0" max="3" oninput="updateNFDisplay()">
+            <div class="nf-tooltip">
+              <div class="nf-tt-state" id="nf-tt-state">💚 Pleine forme</div>
+              <div id="nf-tt-desc">Aucun malus. Le personnage est en pleine forme physique.</div>
+              <div class="nf-tt-rule">
+                💡 Prendre 1 NF volontairement → <strong>+5 bonus</strong> pour une action (un jet de dé)<br>
+                ⚠️ Chaque NF actif → <strong>−5 malus</strong> à toutes les actions jusqu'à récupération<br>
+                🔒 Usage volontaire : action importante + risque réel obligatoires
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Colonne droite : Caractéristiques + Sens -->
+    <div style="display:flex;flex-direction:column;gap:12px;height:100%;">
+
+      <div class="section">
+        <div class="section-title">Caractéristiques principales
+          <span class="note">calculées automatiquement &nbsp;·&nbsp; MAX: 24</span>
+        </div>
+        <div class="chars-grid" id="chars-grid"></div>
+      </div>
+
+      <div class="section" style="flex:1;">
+        <div class="section-title">Les sens
+          <span class="note">répartir PE × 5 pts (opt.)</span>
+        </div>
+        <div class="sens-grid">
+          <div class="sens-card">
+            <div class="abbr-badge blue">VU</div>
+            <span class="name">Vue</span>
+            <input type="number" id="vue" placeholder="0" min="0">
+          </div>
+          <div class="sens-card">
+            <div class="abbr-badge blue">GO</div>
+            <span class="name">Goût</span>
+            <input type="number" id="gout" placeholder="0" min="0">
+          </div>
+          <div class="sens-card">
+            <div class="abbr-badge blue">OU</div>
+            <span class="name">Ouïe</span>
+            <input type="number" id="ouie" placeholder="0" min="0">
+          </div>
+          <div class="sens-card">
+            <div class="abbr-badge blue">TO</div>
+            <span class="name">Toucher</span>
+            <input type="number" id="toucher" placeholder="0" min="0">
+          </div>
+          <div class="sens-card">
+            <div class="abbr-badge blue">OD</div>
+            <span class="name">Odorat</span>
+            <input type="number" id="odorat" placeholder="0" min="0">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ── SECTION 8: TALENTS ── -->
+  <div class="section">
+    <div class="section-title">Talents</div>
+    <div class="talents-formula">
+      CA = Caract. ÷ 2 (arrondi inférieur) &nbsp;·&nbsp; BASE = CA − 2 &nbsp;·&nbsp;
+      1# = 1 pt &nbsp;·&nbsp; Académique = 5# &nbsp;·&nbsp; Spécialisation = 3# &nbsp;·&nbsp;
+      <span style="color:var(--accent);">Arcanes : prix × 2</span>
+    </div>
+    <div class="talents-filter">
+      <input type="text" id="talent-search" placeholder="🔍 Rechercher un talent…" oninput="filterTalents()">
+      <label>
+        <input type="checkbox" id="talent-hide-empty" onchange="filterTalents()">
+        Masquer les talents sans bonus
+      </label>
+    </div>
+    <div class="talents-grid" id="talents-grid"></div>
+  </div>
+
+</div><!-- #page1 -->
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE 2
+══════════════════════════════════════════════════════ -->
+<div id="page2" class="page">
+
+  <div class="p2-grid">
+
+    <!-- ── LEFT: Équipement de base + Niveau social ── -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+
+      <div class="section">
+        <div class="section-title">Équipement de base</div>
+        <textarea id="equipement" class="equip-textarea" placeholder="Listez votre équipement de base…"></textarea>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Niveau social</div>
+        <div class="social-rows">
+          <div class="social-row">
+            <label>Niveau</label>
+            <input type="number" id="niveau_social" placeholder="0" min="0">
+          </div>
+          <div class="social-row">
+            <label>Fortune</label>
+            <input type="number" id="fortune" placeholder="0" min="0">
+          </div>
+          <div class="social-row">
+            <label>Train de vie</label>
+            <input type="number" id="train_de_vie" placeholder="0" min="0">
+          </div>
+        </div>
+      </div>
+
+    </div><!-- left column -->
+
+    <!-- ── RIGHT column ── -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+
+      <!-- Identité -->
+      <div class="section">
+        <div class="section-title">Identité</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="identity-row r1">
+            <div class="field"><label>Nom</label>
+              <input type="text" id="nom" placeholder="Nom du personnage"></div>
+            <div class="field"><label>Surnom</label>
+              <input type="text" id="surnom" placeholder="Surnom"></div>
+            <div class="field"><label>Sexe</label>
+              <input type="text" id="sexe" placeholder="Sexe"></div>
+          </div>
+          <div class="identity-row r2">
+            <div class="field"><label>Espèce</label>
+              <input type="text" id="espece" placeholder="Espèce"></div>
+            <div class="field"><label>Nationalité</label>
+              <input type="text" id="nationalite" placeholder="Nationalité"></div>
+            <div class="field"><label>Né(e) le</label>
+              <input type="text" id="ne_le" placeholder="Date de naissance"></div>
+          </div>
+          <div class="identity-row r3">
+            <div class="field"><label>Taille</label>
+              <input type="text" id="taille" placeholder="ex: 1m80"></div>
+            <div class="field"><label>Poids</label>
+              <input type="text" id="poids" placeholder="ex: 75 kg"></div>
+            <div class="field"><label>Peau</label>
+              <input type="text" id="peau" placeholder="Teint"></div>
+            <div class="field"><label>Cheveux</label>
+              <input type="text" id="cheveux" placeholder="Couleur"></div>
+            <div class="field"><label>Yeux</label>
+              <input type="text" id="yeux" placeholder="Couleur"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description + Portrait -->
+      <div class="section">
+        <div class="section-title">Description</div>
+        <div class="desc-portrait-grid">
+          <textarea id="description" placeholder="Description physique et psychologique du personnage…"></textarea>
+          <div class="portrait-zone" id="portrait-zone" onclick="triggerPortrait(event)" title="Cliquer pour charger un portrait">
+            <input type="file" id="portrait-input" accept="image/*" style="display:none" onchange="loadPortrait(this)">
+            <img id="portrait-img" alt="Portrait">
+            <span id="portrait-placeholder">📷<br>Portrait</span>
+            <button class="portrait-clear" onclick="clearPortrait(event)" title="Supprimer l'image">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Avantages + Défauts -->
+      <div class="grid-auto two-col">
+        <div class="section">
+          <div class="section-title">Avantages</div>
+          <textarea id="avantages" placeholder="Listez vos avantages..."></textarea>
+        </div>
+        <div class="section">
+          <div class="section-title">Défauts</div>
+          <textarea id="defauts" placeholder="Listez vos défauts..."></textarea>
+        </div>
+      </div>
+
+      <!-- Armement -->
+      <div class="section">
+        <div class="section-title">Armement</div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="th-nom">Nom</th>
+                <th>CT</th>
+                <th>FA</th>
+                <th>AV</th>
+                <th>Portée</th>
+                <th>Enc.</th>
+                <th>Mun.</th>
+                <th style="color:var(--accent2);">[utilisées]</th>
+              </tr>
+            </thead>
+            <tbody id="armement-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Protections -->
+      <div class="section">
+        <div class="section-title">Protections</div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="th-nom">Nom</th>
+                <th>Prot.</th>
+                <th>Rés.</th>
+                <th>Mob.</th>
+              </tr>
+            </thead>
+            <tbody id="protections-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- right column -->
+  </div><!-- p2-grid -->
+</div><!-- #page2 -->
+
+<script>
+// ══════════════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════════════
+
+const ASPECTS = [
+  { id:'eng', abbr:'ENG', name:'⚡ Énergie'     },
+  { id:'phy', abbr:'PHY', name:'💪 Physique'    },
+  { id:'res', abbr:'RES', name:'🛡️ Résistance'  },
+  { id:'men', abbr:'MEN', name:'🧠 Mental'      },
+  { id:'ada', abbr:'ADA', name:'🔄 Adaptation'  },
+  { id:'spi', abbr:'SPI', name:'✨ Spirituel'   },
+];
+
+const CHARS = [
+  { id:'fo', abbr:'FO', name:'🔨 Force',        formula:'ENG+PHY', deps:['eng','phy'] },
+  { id:'vo', abbr:'VO', name:'🔥 Volonté',      formula:'ENG+MEN', deps:['eng','men'] },
+  { id:'if', abbr:'IF', name:'🗣️ Influence',    formula:'ENG+SPI', deps:['eng','spi'] },
+  { id:'co', abbr:'CO', name:'❤️ Constitution', formula:'RES+PHY', deps:['res','phy'] },
+  { id:'pe', abbr:'PE', name:'👁️ Perception',   formula:'RES+MEN', deps:['res','men'] },
+  { id:'eq', abbr:'EQ', name:'⚖️ Équilibre',    formula:'RES+SPI', deps:['res','spi'] },
+  { id:'ag', abbr:'AG', name:'💨 Agilité',      formula:'ADA+PHY', deps:['ada','phy'] },
+  { id:'il', abbr:'IL', name:'💡 Intelligence', formula:'ADA+MEN', deps:['ada','men'] },
+  { id:'it', abbr:'IT', name:'🔮 Intuition',    formula:'ADA+SPI', deps:['ada','spi'] },
+];
+
+const TALENT_CATS = [
+  { name:'⚔️ Combat', talents:[
+      {name:'Armes naturelles', c:'ag'},
+      {name:'Armes de contact',  c:'ag'},
+      {name:'Armes de jet',      c:'pe'},
+      {name:'Armes de tir',      c:'pe'},
+      {name:'Armes lourdes',     c:'pe'},
+      {name:'Explosifs',         c:'il'},
+      {name:'Esquive',           c:'ag'},
+  ]},
+  { name:'🤸 Agilité', talents:[
+      {name:'Discrétion',  c:'ag'},
+      {name:'Escalade',    c:'ag'},
+      {name:'Nage',        c:'ag'},
+      {name:'Déograv',     c:'ag'},
+      {name:'Acrobatie',   c:'ag'},
+      {name:'Équitation',  c:'ag'},
+      {name:'Manipulation',c:'ag'},
+  ]},
+  { name:'🚀 Pilotage', talents:[
+      {name:'Autos',        c:'ag'},
+      {name:'Motos',        c:'ag'},
+      {name:'Voiliers',     c:'ag'},
+      {name:'Bateaux',      c:'ag'},
+      {name:'Antigrav',     c:'ag'},
+      {name:'Hélicoptères', c:'ag'},
+      {name:'Avions',       c:'ag'},
+      {name:'Subluminique', c:'ag'},
+  ]},
+  { name:'🔬 Sciences', talents:[
+      {name:'Mathématiques',   c:'il'},
+      {name:'Hypermécanique',  c:'il'},
+      {name:'Biochimie',       c:'il'},
+      {name:'Mécanique',       c:'il'},
+      {name:'Électronique',    c:'il'},
+      {name:'Informatique',    c:'il'},
+      {name:'Médecine',        c:'il'},
+      {name:'Zoologie',        c:'il'},
+      {name:'Environnement',   c:'il'},
+  ]},
+  { name:'📚 Connaissances', talents:[
+      {name:'Survie',       c:'il'},
+      {name:'Orientation',  c:'il'},
+      {name:'Astrogation',  c:'il'},
+      {name:'Histoire',     c:'il'},
+      {name:'Géographie',   c:'il'},
+      {name:'Gestion',      c:'il'},
+      {name:'Paranormal',   c:'it'},
+  ]},
+  { name:'💬 Communication', talents:[
+      {name:'Éloquence',   c:'if'},
+      {name:'Persuasion',  c:'if'},
+      {name:'Tactique',    c:'if'},
+      {name:'Psychologie', c:'it'},
+      {name:'Drague',      c:'if'},
+      {name:'Marchandage', c:'if'},
+  ]},
+  { name:'🤝 Social', talents:[
+      {name:'Étiquette',     c:'eq'},
+      {name:'Survie urbaine',c:'eq'},
+      {name:'Jeu',           c:'it'},
+      {name:'Bureaucratie',  c:'eq'},
+      {name:'Recherche',     c:'pe'},
+      {name:'Information',   c:'il'},
+  ]},
+  { name:'🔧 Artisanat', talents:[
+      {name:'Fermage',     c:'il'},
+      {name:'Génie civil', c:'il'},
+      {name:'Artisanat',   c:'ag'},
+      {name:'Joaillerie',  c:'ag'},
+      {name:'Confection',  c:'ag'},
+      {name:'Bricolage',   c:'ag'},
+      {name:'Gastronomie', c:'it'},
+  ]},
+  { name:'🎨 Art', talents:[
+      {name:'Musique',  c:'ag'},
+      {name:'Chant',    c:'if'},
+      {name:'Danse',    c:'ag'},
+      {name:'Comédie',  c:'it'},
+      {name:'Imagerie', c:'it'},
+      {name:'Sculpture',c:'ag'},
+  ]},
+  { name:'🌐 Langages', sub:'(IL)', talents:[
+      {name:'Anglais galactique', c:'il'},
+      {name:'', c:'il', custom:true},
+      {name:'', c:'il', custom:true},
+      {name:'', c:'il', custom:true},
+      {name:'', c:'il', custom:true},
+  ]},
+  { name:'🔮 Arcanes', sub:'prix × 2', note:'Arcane', talents:[
+      {name:'Esprit / Perception',  c:'it'},
+      {name:'Esprit / Création',    c:'vo'},
+      {name:'Esprit / Contrôle',    c:'eq'},
+      {name:'Matière / Perception', c:'it'},
+      {name:'Matière / Création',   c:'vo'},
+      {name:'Matière / Contrôle',   c:'eq'},
+      {name:'Éveil / Perception',   c:'it'},
+      {name:'Éveil / Création',     c:'vo'},
+      {name:'Éveil / Contrôle',     c:'eq'},
+  ]},
+  { name:'⭐ Spécialisations', sub:'3# chacune', talents:[
+      {name:'', c:null, custom:true},
+      {name:'', c:null, custom:true},
+      {name:'', c:null, custom:true},
+      {name:'', c:null, custom:true},
+      {name:'', c:null, custom:true},
+  ]},
+  { name:'🎓 Académique', sub:'5# chacun', talents:[
+      {name:'', c:null, custom:true},
+      {name:'', c:null, custom:true},
+      {name:'', c:null, custom:true},
+  ]},
+];
+
+// ══════════════════════════════════════════════════════
+//  RENDER — PAGE 1
+// ══════════════════════════════════════════════════════
+
+function getV(id) {
+  const el = document.getElementById(id);
+  return el ? (parseInt(el.value) || 0) : 0;
+}
+function setV(id, v) {
+  const el = document.getElementById(id);
+  if (el) el.value = v;
+}
+
+/* Aspects */
+const agGrid = document.getElementById('aspects-grid');
+ASPECTS.forEach(a => {
+  agGrid.innerHTML += `
+    <div class="aspect-card">
+      <div class="abbr-badge">${a.abbr}</div>
+      <span class="name">${a.name}</span>
+      <input type="number" id="${a.id}" min="0" max="12" placeholder="0" oninput="calculate()">
+    </div>`;
+});
+
+/* Caractéristiques */
+const cgGrid = document.getElementById('chars-grid');
+CHARS.forEach(c => {
+  cgGrid.innerHTML += `
+    <div class="char-card">
+      <div class="top">
+        <div class="abbr-badge blue">${c.abbr}</div>
+        <div>
+          <div class="name">${c.name}</div>
+          <div class="formula">${c.formula}</div>
+        </div>
+      </div>
+      <input type="number" id="${c.id}" readonly placeholder="0" min="0">
+    </div>`;
+});
+
+/* Talents */
+const tgGrid = document.getElementById('talents-grid');
+
+TALENT_CATS.forEach((cat, ci) => {
+  let rows = '';
+  cat.talents.forEach((t, ti) => {
+    const key   = `${ci}_${ti}`;
+    const caId  = `tca_${key}`;
+    const nivId = `tniv_${key}`;
+    const scId  = `tsc_${key}`;
+
+    const nameEl = t.custom
+      ? `<input type="text" class="t-name-input" placeholder="Talent libre…"
+               id="tname_${key}" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);border-radius:4px;">`
+      : `<span class="t-name">${t.name}</span>`;
+
+    const cLabel = t.c ? `<span class="t-caract">${t.c.toUpperCase()}</span>` : '';
+
+    rows += `
+      <div class="t-row">
+        ${nameEl}
+        ${cLabel}
+        <input type="number" id="${caId}"  class="t-num" readonly placeholder="—" data-c="${t.c||''}">
+        <span class="t-op">+</span>
+        <input type="number" id="${nivId}" class="t-num" min="0" placeholder="0"
+               oninput="calcScore('${caId}','${nivId}','${scId}')">
+        <span class="t-op">=</span>
+        <input type="number" id="${scId}"  class="t-num t-score" readonly placeholder="—">
+      </div>`;
+  });
+
+  const note = cat.note === 'Arcane'
+    ? `<div class="arcane-note">⚠ Prix × 2 en points de talents</div>` : '';
+
+  tgGrid.innerHTML += `
+    <div class="t-cat">
+      <div class="t-cat-title">${cat.name}${cat.sub ? `<span style="font-weight:400;color:var(--text-dim);font-size:.65rem;margin-left:6px;">${cat.sub}</span>` : ''}</div>
+      ${note}
+      ${rows}
+    </div>`;
+});
+
+// ══════════════════════════════════════════════════════
+//  RENDER — PAGE 2 TABLES
+// ══════════════════════════════════════════════════════
+
+/* Armement — 5 lignes initiales, +1 automatique dès que la dernière est touchée */
+let armCount = 0;
+const armBody = document.getElementById('armement-body');
+
+function addArmRow() {
+  const i = armCount++;
+  const tr = document.createElement('tr');
+  tr.innerHTML =
+    `<td class="td-nom"><input type="text"   id="arm_nom_${i}"    placeholder=""></td>` +
+    `<td class="td-num"><input type="number" id="arm_ct_${i}"     placeholder=""></td>` +
+    `<td class="td-num"><input type="number" id="arm_fa_${i}"     placeholder=""></td>` +
+    `<td class="td-num"><input type="number" id="arm_av_${i}"     placeholder=""></td>` +
+    `<td class="td-med"><input type="text"   id="arm_portee_${i}" placeholder=""></td>` +
+    `<td class="td-num"><input type="number" id="arm_enc_${i}"    placeholder=""></td>` +
+    `<td class="td-num"><input type="number" id="arm_mun_${i}"    placeholder=""></td>` +
+    `<td class="td-util"><input type="number" id="arm_util_${i}"  placeholder=""></td>`;
+  armBody.appendChild(tr);
+}
+
+armBody.addEventListener('input', e => {
+  if (e.target.closest('tr') === armBody.lastElementChild) addArmRow();
+});
+
+for (let i = 0; i < 5; i++) addArmRow();
+
+/* Protections — 5 lignes initiales, +1 automatique dès que la dernière est touchée */
+let protCount = 0;
+const protBody = document.getElementById('protections-body');
+
+function addProtRow() {
+  const i = protCount++;
+  const tr = document.createElement('tr');
+  tr.innerHTML =
+    `<td class="td-nom"><input type="text"   id="prot_nom_${i}"  placeholder=""></td>` +
+    `<td class="td-num"><input type="number" id="prot_prot_${i}" placeholder=""></td>` +
+    `<td class="td-num"><input type="number" id="prot_res_${i}"  placeholder=""></td>` +
+    `<td class="td-num"><input type="number" id="prot_mob_${i}"  placeholder=""></td>`;
+  protBody.appendChild(tr);
+}
+
+protBody.addEventListener('input', e => {
+  if (e.target.closest('tr') === protBody.lastElementChild) addProtRow();
+});
+
+for (let i = 0; i < 5; i++) addProtRow();
+
+// ══════════════════════════════════════════════════════
+//  CALCULATIONS
+// ══════════════════════════════════════════════════════
+
+function calcScore(caId, nivId, scId) {
+  const ca  = parseInt(document.getElementById(caId)?.value)  || 0;
+  const niv = parseInt(document.getElementById(nivId)?.value) || 0;
+  setV(scId, ca + niv);
+  updateCreationTracker();
+}
+
+function updateTalentCAs() {
+  document.querySelectorAll('[id^="tca_"]').forEach(el => {
+    const c = el.dataset.c;
+    if (!c) return;
+    const ca = Math.floor(getV(c) / 2);
+    el.value = ca || '';
+    const key   = el.id.replace('tca_', '');
+    const nivId = `tniv_${key}`;
+    const scId  = `tsc_${key}`;
+    calcScore(el.id, nivId, scId);
+  });
+}
+
+function calcAspectsCost() {
+  return ASPECTS.reduce((s, a) => s + getV(a.id), 0) * 6;
+}
+
+function calcTalentsCost() {
+  let total = 0;
+  TALENT_CATS.forEach((cat, ci) => {
+    const rate = ci === 10 ? 2 : ci === 11 ? 3 : ci === 12 ? 5 : 1;
+    cat.talents.forEach((t, ti) => {
+      total += (parseInt(document.getElementById(`tniv_${ci}_${ti}`)?.value) || 0) * rate;
+    });
+  });
+  return total;
+}
+
+function updateCreationTracker() {
+  const init  = parseInt(document.getElementById('pc_initiaux')?.value)   || 400;
+  const exp   = parseInt(document.getElementById('pc_experience')?.value) || 0;
+  const dispo = init + exp;
+
+  const aspCost = calcAspectsCost();
+  const talCost = calcTalentsCost();
+  const rest    = dispo - aspCost - talCost;
+
+  const setText = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+  setText('pts-budget',       dispo    + ' #');
+  setText('pts-aspects-cost', aspCost  + ' #');
+  setText('pts-talents-cost', talCost  + ' #');
+
+  const rem = document.getElementById('pts-remaining');
+  if (rem) {
+    rem.textContent = rest + ' #';
+    rem.className   = 'pts-bk-val ' + (rest < 0 ? 'bad' : rest < 30 ? 'warn' : 'ok');
+  }
+}
+
+function calculate() {
+  CHARS.forEach(c => {
+    const v = c.deps.reduce((s, d) => s + getV(d), 0);
+    setV(c.id, v || '');
+  });
+  setV('rx', getV('ag') || '');
+  setV('fv', getV('co') || '');
+  updateTalentCAs();
+  updateCreationTracker();
+}
+
+function filterTalents() {
+  const query     = document.getElementById('talent-search').value.trim().toLowerCase();
+  const hideEmpty = document.getElementById('talent-hide-empty').checked;
+
+  document.querySelectorAll('.t-cat').forEach(cat => {
+    let visibleInCat = 0;
+
+    cat.querySelectorAll('.t-row').forEach(row => {
+      const nameEl  = row.querySelector('.t-name');
+      const nameInp = row.querySelector('.t-name-input');
+      const name    = (nameEl ? nameEl.textContent : (nameInp ? nameInp.value : '')).toLowerCase();
+
+      const nivInp   = row.querySelector('[id^="tniv_"]');
+      const hasBonus = nivInp && parseInt(nivInp.value) > 0;
+
+      // Checkbox : masquer les lignes sans bonus (seul cas où on retire du DOM)
+      if (hideEmpty && !hasBonus) {
+        row.classList.add('hidden-row');
+        row.classList.remove('t-highlight', 't-dim');
+        return;
+      }
+      row.classList.remove('hidden-row');
+      visibleInCat++;
+
+      // Recherche : highlight / dim, sans jamais masquer
+      if (query) {
+        const matches = name.includes(query);
+        if (matches) {
+          // Retire puis remet la classe pour re-déclencher l'animation
+          row.classList.remove('t-highlight', 't-dim');
+          void row.offsetWidth;
+          row.classList.add('t-highlight');
+        } else {
+          row.classList.remove('t-highlight');
+          row.classList.add('t-dim');
+        }
+      } else {
+        row.classList.remove('t-highlight', 't-dim');
+      }
+    });
+
+    // Cacher la catégorie uniquement quand la checkbox cache tout
+    cat.classList.toggle('hidden-cat', hideEmpty && visibleInCat === 0);
+  });
+}
+
+
+// ══════════════════════════════════════════════════════
+//  NIVEAUX DE FATIGUE
+// ══════════════════════════════════════════════════════
+
+const NF_DATA = [
+  { label:'💚 Pleine forme',       sub:'Pleine forme', color:'#4caf82',       cls:'',     desc:'Aucun malus. Le personnage est en pleine forme physique.' },
+  { label:'🟡 Fatigué (−5)',       sub:'Malus −5',     color:'var(--gold)',   cls:'nf-1', desc:'Malus de −5 à toutes les actions.' },
+  { label:'🟠 Très fatigué (−10)', sub:'Malus −10',    color:'#e08820',       cls:'nf-2', desc:'Malus de −10 à toutes les actions.' },
+  { label:'🔴 Épuisé (−15)',       sub:'Malus −15',    color:'var(--accent)', cls:'nf-3', desc:'Malus de −15 à toutes les actions. Oui, ça fait mal.' },
+];
+
+function updateNFDisplay() {
+  const input = document.getElementById('nf');
+  let nf = Math.min(3, Math.max(0, parseInt(input?.value) || 0));
+  if (input) input.value = nf;
+
+  const d = NF_DATA[nf];
+  const card = document.getElementById('nf-card');
+  if (card) card.className = 'autre-card' + (d.cls ? ' ' + d.cls : '');
+
+  const sub = document.getElementById('nf-status');
+  if (sub) sub.textContent = d.sub;
+
+  const ttState = document.getElementById('nf-tt-state');
+  if (ttState) { ttState.textContent = d.label; ttState.style.color = d.color; }
+
+  const ttDesc = document.getElementById('nf-tt-desc');
+  if (ttDesc) ttDesc.textContent = d.desc;
+}
+
+// ══════════════════════════════════════════════════════
+//  PAGE NAVIGATION
+// ══════════════════════════════════════════════════════
+
+function showPage(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`page${n}`).classList.add('active');
+  document.querySelectorAll('.tab-btn')[n - 1].classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════
+//  PORTRAIT IMAGE
+// ══════════════════════════════════════════════════════
+
+function triggerPortrait(e) {
+  if (e.target.classList.contains('portrait-clear')) return;
+  document.getElementById('portrait-input').click();
+}
+
+function loadPortrait(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    applyPortrait(e.target.result);
+    localStorage.setItem('tv_portrait', e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+function applyPortrait(src) {
+  const img = document.getElementById('portrait-img');
+  const placeholder = document.getElementById('portrait-placeholder');
+  img.src = src;
+  img.style.display = 'block';
+  placeholder.style.display = 'none';
+}
+
+function clearPortrait(e) {
+  e.stopPropagation();
+  const img = document.getElementById('portrait-img');
+  const placeholder = document.getElementById('portrait-placeholder');
+  img.src = '';
+  img.style.display = 'none';
+  placeholder.style.display = '';
+  document.getElementById('portrait-input').value = '';
+  localStorage.removeItem('tv_portrait');
+}
+
+// ══════════════════════════════════════════════════════
+//  SAVE / LOAD / RESET
+// ══════════════════════════════════════════════════════
+
+function collectData() {
+  const data = {};
+  document.querySelectorAll('input:not([readonly]), textarea').forEach(el => {
+    if (el.id && el.type !== 'file') data[el.id] = el.value;
+  });
+  return data;
+}
+
+function applyData(data) {
+  // Pré-créer les lignes nécessaires avant d'injecter les valeurs
+  const armMax = Object.keys(data)
+    .filter(k => /^arm_nom_\d+$/.test(k))
+    .reduce((m, k) => Math.max(m, +k.split('_').pop()), -1);
+  while (armCount <= armMax) addArmRow();
+
+  const protMax = Object.keys(data)
+    .filter(k => /^prot_nom_\d+$/.test(k))
+    .reduce((m, k) => Math.max(m, +k.split('_').pop()), -1);
+  while (protCount <= protMax) addProtRow();
+
+  Object.entries(data).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el && !el.readOnly && el.type !== 'file') el.value = val;
+  });
+  calculate();
+  updateNFDisplay();
+}
+
+function flashAutosave() {
+  const dot = document.getElementById('autosave-dot');
+  if (!dot) return;
+  dot.classList.add('visible');
+  setTimeout(() => dot.classList.remove('visible'), 1500);
+}
+
+function toggleSettings() {
+  document.getElementById('settings-panel').classList.toggle('open');
+}
+
+function forceSave() {
+  localStorage.setItem('tv_sheet', JSON.stringify(collectData()));
+  toggleSettings();
+  showToast('Fiche sauvegardée ✓');
+}
+
+function exportJSON() {
+  const payload = {
+    sheet: collectData(),
+    portrait: localStorage.getItem('tv_portrait') || null,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const nom = document.getElementById('nom')?.value.trim() || 'personnage';
+  a.download = `tv_${nom}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toggleSettings();
+}
+
+function importJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const payload = JSON.parse(e.target.result);
+      const data = payload.sheet ?? payload;
+      applyData(data);
+      if (payload.portrait) {
+        applyPortrait(payload.portrait);
+        localStorage.setItem('tv_portrait', payload.portrait);
+      }
+      localStorage.setItem('tv_sheet', JSON.stringify(collectData()));
+      showToast('Fiche importée ✓');
+    } catch {
+      showToast('Fichier invalide.', true);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+  toggleSettings();
+}
+
+function resetSheet() {
+  toggleSettings();
+  if (!confirm('Réinitialiser toute la fiche ? Cette action est irréversible.')) return;
+  document.querySelectorAll('input:not([readonly]), textarea').forEach(el => {
+    if (el.type !== 'file') el.value = '';
+  });
+  clearPortrait({ stopPropagation: () => {} });
+  calculate();
+  showToast('Fiche réinitialisée.');
+}
+
+function showToast(msg, warn) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style, {
+    position:'fixed', bottom:'20px', right:'20px', zIndex:9999,
+    background: warn ? 'var(--accent)' : 'var(--accent2)',
+    color:'#fff', borderRadius:'8px', padding:'10px 18px',
+    fontSize:'.85rem', fontWeight:'600', boxShadow:'0 4px 20px rgba(0,0,0,.4)',
+    transition:'opacity .4s',
+  });
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 2000);
+}
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+
+// Auto-save à chaque modification
+let _saveTimer;
+document.addEventListener('input', () => {
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => {
+    localStorage.setItem('tv_sheet', JSON.stringify(collectData()));
+    flashAutosave();
+  }, 600);
+});
+
+// Fermer le panel en cliquant ailleurs
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('gear-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('settings-panel')?.classList.remove('open');
+  }
+});
+
+calculate();
+
+(function() {
+  const raw = localStorage.getItem('tv_sheet');
+  if (raw) {
+    try { applyData(JSON.parse(raw)); } catch(e) { updateCreationTracker(); }
+  } else {
+    document.getElementById('pc_initiaux').value = 400;
+    updateCreationTracker();
+  }
+  updateNFDisplay();
+  const portrait = localStorage.getItem('tv_portrait');
+  if (portrait) applyPortrait(portrait);
+})();
+</script>
+</body>
+</html>
