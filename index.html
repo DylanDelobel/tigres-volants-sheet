@@ -631,7 +631,7 @@
 
     /* ── Équipement textarea ── */
     .equip-textarea {
-      min-height: 620px;
+      min-height: 160px;
       width: 100%;
       font-size: .85rem;
       line-height: 1.5;
@@ -1072,30 +1072,12 @@
 
   <div class="p2-grid">
 
-    <!-- ── LEFT: Équipement de base + Niveau social ── -->
+    <!-- ── LEFT: Équipement de base ── -->
     <div style="display:flex;flex-direction:column;gap:12px;">
 
       <div class="section">
         <div class="section-title">Équipement de base</div>
         <textarea id="equipement" class="equip-textarea" placeholder="Listez votre équipement de base…"></textarea>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Niveau social</div>
-        <div class="social-rows">
-          <div class="social-row">
-            <label>Niveau</label>
-            <input type="number" id="niveau_social" placeholder="0" min="0">
-          </div>
-          <div class="social-row">
-            <label>Fortune</label>
-            <input type="number" id="fortune" placeholder="0" min="0">
-          </div>
-          <div class="social-row">
-            <label>Train de vie</label>
-            <input type="number" id="train_de_vie" placeholder="0" min="0">
-          </div>
-        </div>
       </div>
 
     </div><!-- left column -->
@@ -1161,6 +1143,25 @@
         <div class="section">
           <div class="section-title">Défauts</div>
           <textarea id="defauts" placeholder="Listez vos défauts..."></textarea>
+        </div>
+      </div>
+
+      <!-- Niveau social -->
+      <div class="section">
+        <div class="section-title">Niveau social</div>
+        <div class="social-rows">
+          <div class="social-row">
+            <label>Niveau</label>
+            <input type="number" id="niveau_social" placeholder="0" min="0">
+          </div>
+          <div class="social-row">
+            <label>Fortune</label>
+            <input type="number" id="fortune" placeholder="0" min="0">
+          </div>
+          <div class="social-row">
+            <label>Train de vie</label>
+            <input type="number" id="train_de_vie" placeholder="0" min="0">
+          </div>
         </div>
       </div>
 
