@@ -129,6 +129,42 @@
       margin: 4px 0;
     }
 
+    /* ── JSON Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.6);
+      display: none;
+      align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      width: min(92vw, 560px);
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .modal-box h3 { margin: 0; font-size: 1rem; color: var(--text); }
+    .modal-box textarea {
+      width: 100%; height: 180px;
+      background: var(--bg); color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 8px; font-family: monospace; font-size: .75rem;
+      word-break: break-all; overflow-wrap: anywhere; white-space: pre-wrap;
+      resize: vertical; box-sizing: border-box;
+    }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .modal-actions button {
+      padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--bg3); color: var(--text); cursor: pointer; font-size: .85rem;
+    }
+    .modal-actions button.primary {
+      background: var(--accent2); border-color: var(--accent2); color: #fff;
+    }
+    .modal-actions button:hover { filter: brightness(1.15); }
+
     /* ── Auto-save indicator ── */
     .autosave-dot {
       display: inline-block;
@@ -848,10 +884,7 @@
     <div class="settings-panel" id="settings-panel">
       <button class="settings-item" onclick="forceSave()">💾 Forcer la sauvegarde</button>
       <button class="settings-item" onclick="exportJSON()">📤 Exporter (JSON)</button>
-      <label class="settings-item" style="cursor:pointer">
-        📥 Importer
-        <input type="file" id="import-input" accept=".json" style="display:none" onchange="importJSON(this)">
-      </label>
+      <button class="settings-item" onclick="openImportModal()">📥 Importer (JSON)</button>
       <div class="settings-divider"></div>
       <button class="settings-item danger" onclick="resetSheet()">🗑 Réinitialiser</button>
     </div>
@@ -861,6 +894,18 @@
 <!-- ══════════════════════════════════════════════════════
      PAGE 1
 ══════════════════════════════════════════════════════ -->
+<!-- ── JSON MODAL ── -->
+<div class="modal-overlay" id="json-modal" onclick="onModalOverlayClick(event)">
+  <div class="modal-box">
+    <h3 id="modal-title"></h3>
+    <textarea id="modal-textarea" spellcheck="false"></textarea>
+    <div class="modal-actions">
+      <button onclick="closeJsonModal()">Fermer</button>
+      <button class="primary" id="modal-action-btn"></button>
+    </div>
+  </div>
+</div>
+
 <div id="page1" class="page active">
 
   <!-- ── POINTS DE CRÉATION ── -->
@@ -1683,42 +1728,58 @@ function forceSave() {
 }
 
 function exportJSON() {
-  const payload = {
-    sheet: collectData(),
-    portrait: localStorage.getItem('tv_portrait') || null,
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  const nom = document.getElementById('nom')?.value.trim() || 'personnage';
-  a.download = `tv_${nom}.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
   toggleSettings();
+  const json = JSON.stringify({ sheet: collectData() });
+  const ta = document.getElementById('modal-textarea');
+  ta.value = json;
+  ta.readOnly = true;
+  document.getElementById('modal-title').textContent = 'Exporter la fiche';
+  const btn = document.getElementById('modal-action-btn');
+  btn.textContent = '📋 Copier';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(json).then(() => {
+      btn.textContent = '✓ Copié !';
+      setTimeout(() => { btn.textContent = '📋 Copier'; }, 2000);
+    });
+  };
+  document.getElementById('json-modal').classList.add('open');
+  setTimeout(() => ta.select(), 50);
 }
 
-function importJSON(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const payload = JSON.parse(e.target.result);
-      const data = payload.sheet ?? payload;
-      applyData(data);
-      if (payload.portrait) {
-        applyPortrait(payload.portrait);
-        localStorage.setItem('tv_portrait', payload.portrait);
-      }
-      localStorage.setItem('tv_sheet', JSON.stringify(collectData()));
-      showToast('Fiche importée ✓');
-    } catch {
-      showToast('Fichier invalide.', true);
-    }
-    input.value = '';
-  };
-  reader.readAsText(file);
+function openImportModal() {
   toggleSettings();
+  const ta = document.getElementById('modal-textarea');
+  ta.value = '';
+  ta.readOnly = false;
+  ta.placeholder = 'Collez le JSON ici…';
+  document.getElementById('modal-title').textContent = 'Importer une fiche';
+  const btn = document.getElementById('modal-action-btn');
+  btn.textContent = '📥 Importer';
+  btn.onclick = doImport;
+  document.getElementById('json-modal').classList.add('open');
+  setTimeout(() => ta.focus(), 50);
+}
+
+function doImport() {
+  const raw = document.getElementById('modal-textarea').value.trim();
+  try {
+    const payload = JSON.parse(raw);
+    const data = payload.sheet ?? payload;
+    applyData(data);
+    localStorage.setItem('tv_sheet', JSON.stringify(collectData()));
+    closeJsonModal();
+    showToast('Fiche importée ✓');
+  } catch {
+    showToast('JSON invalide.', true);
+  }
+}
+
+function closeJsonModal() {
+  document.getElementById('json-modal').classList.remove('open');
+}
+
+function onModalOverlayClick(e) {
+  if (e.target === document.getElementById('json-modal')) closeJsonModal();
 }
 
 function resetSheet() {
