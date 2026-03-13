@@ -733,19 +733,19 @@
     /* ── Description + Portrait ── */
     .desc-portrait-grid {
       display: grid;
-      grid-template-columns: 1fr 150px;
+      grid-template-columns: 1fr 300px;
       gap: 10px;
       align-items: start;
     }
 
     .desc-portrait-grid textarea {
-      min-height: 190px;
+      min-height: 300px;
     }
 
     .portrait-zone {
       border: 2px dashed var(--border);
       border-radius: 6px;
-      height: 190px;
+      height: 300px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -860,7 +860,7 @@
     @media (max-width: 480px) {
       body { padding: 8px; }
       .desc-portrait-grid { grid-template-columns: 1fr; }
-      .portrait-zone { height: 140px; }
+      .portrait-zone { height: auto; aspect-ratio: 1 / 1; }
     }
 
     @media (max-width: 600px) {
