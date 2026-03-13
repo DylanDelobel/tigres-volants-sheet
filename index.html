@@ -1011,32 +1011,33 @@
       <div class="section" style="flex:1;">
         <div class="section-title">Les sens
           <span class="note">répartir PE × 5 pts (opt.)</span>
+          <span id="sens-restants" style="margin-left:auto;font-size:.78rem;font-weight:600;color:var(--accent2);"></span>
         </div>
         <div class="sens-grid">
           <div class="sens-card">
             <div class="abbr-badge blue">VU</div>
             <span class="name">Vue</span>
-            <input type="number" id="vue" placeholder="0" min="0">
+            <input type="number" id="vue" placeholder="0" min="0" oninput="updateSensRestants()">
           </div>
           <div class="sens-card">
             <div class="abbr-badge blue">GO</div>
             <span class="name">Goût</span>
-            <input type="number" id="gout" placeholder="0" min="0">
+            <input type="number" id="gout" placeholder="0" min="0" oninput="updateSensRestants()">
           </div>
           <div class="sens-card">
             <div class="abbr-badge blue">OU</div>
             <span class="name">Ouïe</span>
-            <input type="number" id="ouie" placeholder="0" min="0">
+            <input type="number" id="ouie" placeholder="0" min="0" oninput="updateSensRestants()">
           </div>
           <div class="sens-card">
             <div class="abbr-badge blue">TO</div>
             <span class="name">Toucher</span>
-            <input type="number" id="toucher" placeholder="0" min="0">
+            <input type="number" id="toucher" placeholder="0" min="0" oninput="updateSensRestants()">
           </div>
           <div class="sens-card">
             <div class="abbr-badge blue">OD</div>
             <span class="name">Odorat</span>
-            <input type="number" id="odorat" placeholder="0" min="0">
+            <input type="number" id="odorat" placeholder="0" min="0" oninput="updateSensRestants()">
           </div>
         </div>
       </div>
@@ -1152,7 +1153,7 @@
         <div class="social-rows">
           <div class="social-row">
             <label>Niveau</label>
-            <input type="number" id="niveau_social" placeholder="0" min="0">
+            <input type="text" id="niveau_social" placeholder="—">
           </div>
           <div class="social-row">
             <label>Fortune</label>
@@ -1550,6 +1551,18 @@ function calculate() {
   setV('fv', getV('co') || '');
   updateTalentCAs();
   updateCreationTracker();
+  updateSensRestants();
+}
+
+function updateSensRestants() {
+  const total = getV('pe') * 5;
+  const used = ['vue','gout','ouie','toucher','odorat'].reduce((s, id) => s + getV(id), 0);
+  const rest = total - used;
+  const el = document.getElementById('sens-restants');
+  if (!el) return;
+  if (total === 0) { el.textContent = ''; return; }
+  el.textContent = rest + ' pts restants';
+  el.style.color = rest < 0 ? 'var(--accent)' : rest === 0 ? 'var(--gold)' : 'var(--accent2)';
 }
 
 function filterTalents() {
