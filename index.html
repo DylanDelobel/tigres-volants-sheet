@@ -1163,6 +1163,18 @@
             .cap-name { font-weight: 700; font-size: .95rem; margin-bottom: 6px; }
             .cap-desc { font-size: .8rem; color: var(--text-dim); line-height: 1.6; }
 
+            /* ── GM Mode ── */
+            .gm-banner { display:none; background:var(--bg3); border-bottom:2px solid var(--gold); padding:6px 12px; }
+            body.gm-mode .gm-banner { display:block; }
+            .gm-label { font-size:.65rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); margin-bottom:5px; }
+            .gm-slot-bar { display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; }
+            .gm-slot { flex:1; min-width:70px; max-width:160px; padding:5px 8px; font-size:.75rem; font-weight:600; border:1px solid var(--border); border-radius:6px; background:var(--bg2); color:var(--text-dim); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:border-color .2s,color .2s,background .2s; }
+            .gm-slot.filled { color:var(--text); border-color:var(--accent2); }
+            .gm-slot.gm-active { background:var(--accent2); color:#fff; border-color:var(--accent2); }
+            .gm-slot:hover { border-color:var(--gold); }
+            body.gm-mode input:not([readonly]), body.gm-mode textarea, body.gm-mode input[type="checkbox"] { pointer-events:none; cursor:default; }
+            body.gm-mode button { pointer-events:auto; cursor:pointer; }
+
             /* ── Mobile responsive fixes ── */
             @media (max-width: 480px) {
                 body {
@@ -1197,6 +1209,12 @@
             </p>
         </header>
 
+        <!-- ── GM BANNER ── -->
+        <div class="gm-banner">
+            <div class="gm-label">🎲 Mode Game Master</div>
+            <div class="gm-slot-bar" id="gm-slot-bar"></div>
+        </div>
+
         <!-- ── TAB NAVIGATION ── -->
         <div class="tab-nav">
             <button class="tab-btn active" onclick="showPage(1)">Stats</button>
@@ -1221,6 +1239,16 @@
                     <button class="settings-item" onclick="openImportModal()">
                         📥 Importer (JSON)
                     </button>
+                    <div class="settings-divider"></div>
+                    <button class="settings-item" id="gm-toggle-btn" onclick="toggleGMMode()">
+                        🎲 Mode Game Master
+                    </button>
+                    <div class="settings-divider" id="gm-divider" style="display:none;"></div>
+                    <button class="settings-item" id="gm-import-1" style="display:none;" onclick="gmImportSlot(1)">📥 Importer Slot #1</button>
+                    <button class="settings-item" id="gm-import-2" style="display:none;" onclick="gmImportSlot(2)">📥 Importer Slot #2</button>
+                    <button class="settings-item" id="gm-import-3" style="display:none;" onclick="gmImportSlot(3)">📥 Importer Slot #3</button>
+                    <button class="settings-item" id="gm-import-4" style="display:none;" onclick="gmImportSlot(4)">📥 Importer Slot #4</button>
+                    <button class="settings-item" id="gm-import-5" style="display:none;" onclick="gmImportSlot(5)">📥 Importer Slot #5</button>
                     <div class="settings-divider"></div>
                     <button class="settings-item danger" onclick="resetSheet()">
                         🗑 Réinitialiser
@@ -2722,6 +2750,99 @@
                 }, 600);
             });
 
+            // ── GM MODE ─────────────────────────────────────────────
+            let gmMode = false;
+            let gmActiveSlot = null;
+
+            function toggleGMMode() {
+                toggleSettings();
+                if (!gmMode) {
+                    if (!confirm('Activer le mode Game Master ?\nLa fiche sera en lecture seule.')) return;
+                    gmMode = true;
+                    localStorage.setItem('tv_gm_mode', '1');
+                } else {
+                    if (!confirm('Quitter le mode Game Master ?')) return;
+                    gmMode = false;
+                    gmActiveSlot = null;
+                    localStorage.removeItem('tv_gm_mode');
+                }
+                applyGMMode();
+            }
+
+            function applyGMMode() {
+                document.body.classList.toggle('gm-mode', gmMode);
+                const btn = document.getElementById('gm-toggle-btn');
+                if (btn) btn.textContent = gmMode ? '🎲 Quitter le mode GM' : '🎲 Mode Game Master';
+                const show = gmMode ? '' : 'none';
+                document.getElementById('gm-divider').style.display = show;
+                for (let i = 1; i <= 5; i++)
+                    document.getElementById(`gm-import-${i}`).style.display = show;
+                renderGMSlots();
+            }
+
+            function renderGMSlots() {
+                const bar = document.getElementById('gm-slot-bar');
+                if (!bar) return;
+                bar.innerHTML = '';
+                for (let i = 1; i <= 5; i++) {
+                    const raw = localStorage.getItem(`tv_gm_slot_${i}`);
+                    let label = `Slot ${i}`;
+                    let filled = false;
+                    if (raw) {
+                        try {
+                            const d = JSON.parse(raw);
+                            label = d.surnom || d.nom || `Slot ${i}`;
+                            filled = true;
+                        } catch {}
+                    }
+                    const btn = document.createElement('button');
+                    btn.className = 'gm-slot' + (filled ? ' filled' : '') + (gmActiveSlot === i ? ' gm-active' : '');
+                    btn.textContent = label;
+                    btn.title = label;
+                    btn.onclick = () => gmLoadSlot(i);
+                    bar.appendChild(btn);
+                }
+            }
+
+            function gmLoadSlot(n) {
+                const raw = localStorage.getItem(`tv_gm_slot_${n}`);
+                if (!raw) { showToast(`Slot ${n} vide.`, true); return; }
+                try {
+                    gmActiveSlot = n;
+                    applyData(JSON.parse(raw));
+                    const portrait = localStorage.getItem(`tv_gm_portrait_${n}`);
+                    if (portrait) applyPortrait(portrait);
+                    else clearPortrait({ stopPropagation: () => {} });
+                    renderGMSlots();
+                    showToast(`Slot ${n} chargé.`);
+                } catch { showToast('Erreur de chargement.', true); }
+            }
+
+            async function gmImportSlot(n) {
+                toggleSettings();
+                const ta = document.getElementById('modal-textarea');
+                ta.value = '';
+                ta.readOnly = false;
+                ta.placeholder = `Collez le code TV1: pour le Slot ${n}…`;
+                document.getElementById('modal-title').textContent = `Importer Slot #${n}`;
+                const btn = document.getElementById('modal-action-btn');
+                btn.textContent = `📥 Sauvegarder dans Slot ${n}`;
+                btn.onclick = async () => {
+                    const raw = ta.value.trim();
+                    if (!raw.startsWith('TV1:')) { showToast('Code invalide.', true); return; }
+                    try {
+                        const data = JSON.parse(await _decompress(raw));
+                        localStorage.setItem(`tv_gm_slot_${n}`, JSON.stringify(data));
+                        closeJsonModal();
+                        renderGMSlots();
+                        showToast(`Slot ${n} sauvegardé ✓`);
+                    } catch { showToast('Code invalide.', true); }
+                };
+                document.getElementById('json-modal').classList.add('open');
+                setTimeout(() => ta.focus(), 50);
+            }
+            // ────────────────────────────────────────────────────────
+
             // Fermer le panel en cliquant ailleurs
             document.addEventListener("click", (e) => {
                 const wrap = document.getElementById("gear-wrap");
@@ -2758,6 +2879,11 @@
                 updateNFDisplay();
                 const portrait = localStorage.getItem("tv_portrait");
                 if (portrait) applyPortrait(portrait);
+                // Restaurer mode GM
+                if (localStorage.getItem('tv_gm_mode') === '1') {
+                    gmMode = true;
+                    applyGMMode();
+                }
             })();
         </script>
     </body>
