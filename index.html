@@ -1154,6 +1154,15 @@
                 background: rgba(230, 57, 70, 0.07);
             }
 
+            /* ── Capacités spéciales ── */
+            .cap-grid { display: flex; flex-direction: column; gap: 14px; }
+            .cap-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; display: flex; gap: 14px; align-items: flex-start; transition: border-color .2s; }
+            .cap-card:has(.cap-toggle:checked) { border-color: var(--accent2); }
+            .cap-toggle { flex-shrink: 0; width: 22px; height: 22px; accent-color: var(--accent2); cursor: pointer; margin-top: 2px; }
+            .cap-body { flex: 1; }
+            .cap-name { font-weight: 700; font-size: .95rem; margin-bottom: 6px; }
+            .cap-desc { font-size: .8rem; color: var(--text-dim); line-height: 1.6; }
+
             /* ── Mobile responsive fixes ── */
             @media (max-width: 480px) {
                 body {
@@ -1786,8 +1795,36 @@
         </div>
         <!-- #page2 -->
 
-        <div id="page3" class="page"></div>
-        <!-- #page3 -->
+        <div id="page3" class="page">
+          <div class="section">
+            <div class="section-title">Capacités spéciales</div>
+            <div class="cap-grid">
+
+              <div class="cap-card">
+                <input type="checkbox" class="cap-toggle" id="cap_indestructible" onchange="calculate()">
+                <div class="cap-body">
+                  <div class="cap-name">Indestructible</div>
+                  <div class="cap-desc">
+                    FV = Constitution × 1.5 (arrondi supérieur) au lieu de = Constitution.<br>
+                    Prend un NF de moins en cas de blessure.
+                  </div>
+                </div>
+              </div>
+
+              <div class="cap-card">
+                <input type="checkbox" class="cap-toggle" id="cap_servomoto" onchange="calculate()">
+                <div class="cap-body">
+                  <div class="cap-name">Servomotorisation</div>
+                  <div class="cap-desc">
+                    Multiplie la FO dans le bras ou la jambe équipé(e) par 1.5 (arrondi supérieur). Voir Équipement → Armures.<br>
+                    <em>Modifie le FO global sur la fiche — affecte les talents associés.</em>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div><!-- #page3 -->
 
         <script>
             // ══════════════════════════════════════════════════════
@@ -2250,7 +2287,11 @@
                     setV(c.id, v || "");
                 });
                 setV("rx", getV("ag") || "");
-                setV("fv", getV("co") || "");
+                if (document.getElementById('cap_servomoto')?.checked) {
+                    setV('fo', Math.ceil(getV('fo') * 1.5));
+                }
+                const indestructible = document.getElementById('cap_indestructible')?.checked;
+                setV('fv', indestructible ? Math.ceil(getV('co') * 1.5) : (getV('co') || ''));
                 updateTalentCAs();
                 updateCreationTracker();
                 updateSensRestants();
@@ -2467,7 +2508,8 @@
                 document
                     .querySelectorAll("input:not([readonly]), textarea")
                     .forEach((el) => {
-                        if (el.id && el.type !== "file") data[el.id] = el.value;
+                        if (!el.id || el.type === "file") return;
+                        data[el.id] = el.type === 'checkbox' ? (el.checked ? '1' : '0') : el.value;
                     });
                 return data;
             }
@@ -2486,8 +2528,9 @@
 
                 Object.entries(data).forEach(([id, val]) => {
                     const el = document.getElementById(id);
-                    if (el && !el.readOnly && el.type !== "file")
-                        el.value = val;
+                    if (!el || el.readOnly || el.type === "file") return;
+                    if (el.type === 'checkbox') el.checked = val === '1';
+                    else el.value = val;
                 });
                 calculate();
                 updateNFDisplay();
