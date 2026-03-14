@@ -1808,15 +1808,8 @@ function openImportModal() {
 async function doImport() {
   const raw = document.getElementById('modal-textarea').value.trim();
   try {
-    let data;
-    if (raw.startsWith('TV1:')) {
-      const json = await _decompress(raw);
-      data = JSON.parse(json);
-    } else {
-      // rétrocompat JSON brut
-      const payload = JSON.parse(raw);
-      data = payload.sheet ?? payload;
-    }
+    if (!raw.startsWith('TV1:')) { showToast('Code invalide.', true); return; }
+    const data = JSON.parse(await _decompress(raw));
     applyData(data);
     localStorage.setItem('tv_sheet', JSON.stringify(collectData()));
     closeJsonModal();
