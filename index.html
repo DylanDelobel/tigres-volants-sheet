@@ -1001,81 +1001,6 @@
             }
 
             /* ── Description + Portrait ── */
-            .desc-portrait-grid {
-                display: grid;
-                grid-template-columns: 1fr 300px;
-                gap: 10px;
-                align-items: start;
-            }
-
-            .desc-portrait-grid textarea {
-                resize: none;
-            }
-
-            .portrait-zone {
-                border: 2px dashed var(--border);
-                border-radius: 6px;
-                height: 300px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                transition:
-                    border-color 0.2s,
-                    background 0.2s;
-                overflow: hidden;
-                position: relative;
-                background: var(--bg2);
-                user-select: none;
-            }
-
-            .portrait-zone:hover {
-                border-color: var(--accent2);
-                background: #1e1e3a;
-            }
-
-            #portrait-placeholder {
-                font-size: 0.75rem;
-                color: var(--text-dim);
-                text-align: center;
-                line-height: 2;
-                pointer-events: none;
-            }
-
-            #portrait-img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                border-radius: 4px;
-                position: absolute;
-                top: 0;
-                left: 0;
-                display: none;
-            }
-
-            .portrait-clear {
-                position: absolute;
-                top: 4px;
-                right: 4px;
-                background: rgba(0, 0, 0, 0.6);
-                border: none;
-                color: #fff;
-                border-radius: 50%;
-                width: 22px;
-                height: 22px;
-                font-size: 0.7rem;
-                cursor: pointer;
-                display: none;
-                align-items: center;
-                justify-content: center;
-                z-index: 2;
-            }
-
-            .portrait-zone:hover .portrait-clear {
-                display: flex;
-            }
-
             /* ── Data tables ── */
             .table-wrap {
                 overflow-x: auto;
@@ -1179,13 +1104,6 @@
             @media (max-width: 480px) {
                 body {
                     padding: 8px;
-                }
-                .desc-portrait-grid {
-                    grid-template-columns: 1fr;
-                }
-                .portrait-zone {
-                    height: auto;
-                    aspect-ratio: 1 / 1;
                 }
             }
 
@@ -1682,42 +1600,15 @@
                         </div>
                     </div>
 
-                    <!-- Description + Portrait -->
+                    <!-- Description -->
                     <div class="section">
                         <div class="section-title">Description</div>
-                        <div class="desc-portrait-grid">
-                            <textarea
-                                id="description"
-                                rows="3"
-                                placeholder="Description physique et psychologique du personnage…"
-                                oninput="autoResize(this)"
-                            ></textarea>
-                            <div
-                                class="portrait-zone"
-                                id="portrait-zone"
-                                onclick="triggerPortrait(event)"
-                                title="Cliquer pour charger un portrait"
-                            >
-                                <input
-                                    type="file"
-                                    id="portrait-input"
-                                    accept="image/*"
-                                    style="display: none"
-                                    onchange="loadPortrait(this)"
-                                />
-                                <img id="portrait-img" alt="Portrait" />
-                                <span id="portrait-placeholder"
-                                    >📷<br />Portrait</span
-                                >
-                                <button
-                                    class="portrait-clear"
-                                    onclick="clearPortrait(event)"
-                                    title="Supprimer l'image"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                        </div>
+                        <textarea
+                            id="description"
+                            rows="3"
+                            placeholder="Description physique et psychologique du personnage…"
+                            oninput="autoResize(this)"
+                        ></textarea>
                     </div>
 
                     <!-- Avantages + Défauts -->
@@ -2485,49 +2376,6 @@
             }
 
             // ══════════════════════════════════════════════════════
-            //  PORTRAIT IMAGE
-            // ══════════════════════════════════════════════════════
-
-            function triggerPortrait(e) {
-                if (e.target.classList.contains("portrait-clear")) return;
-                document.getElementById("portrait-input").click();
-            }
-
-            function loadPortrait(input) {
-                const file = input.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    applyPortrait(e.target.result);
-                    localStorage.setItem("tv_portrait", e.target.result);
-                };
-                reader.readAsDataURL(file);
-            }
-
-            function applyPortrait(src) {
-                const img = document.getElementById("portrait-img");
-                const placeholder = document.getElementById(
-                    "portrait-placeholder",
-                );
-                img.src = src;
-                img.style.display = "block";
-                placeholder.style.display = "none";
-            }
-
-            function clearPortrait(e) {
-                e.stopPropagation();
-                const img = document.getElementById("portrait-img");
-                const placeholder = document.getElementById(
-                    "portrait-placeholder",
-                );
-                img.src = "";
-                img.style.display = "none";
-                placeholder.style.display = "";
-                document.getElementById("portrait-input").value = "";
-                localStorage.removeItem("tv_portrait");
-            }
-
-            // ══════════════════════════════════════════════════════
             //  SAVE / LOAD / RESET
             // ══════════════════════════════════════════════════════
 
@@ -2704,7 +2552,6 @@
                     .forEach((el) => {
                         if (el.type !== "file") el.value = "";
                     });
-                clearPortrait({ stopPropagation: () => {} });
                 calculate();
                 showToast("Fiche réinitialisée.");
             }
@@ -2810,9 +2657,6 @@
                 try {
                     gmActiveSlot = n;
                     applyData(JSON.parse(raw));
-                    const portrait = localStorage.getItem(`tv_gm_portrait_${n}`);
-                    if (portrait) applyPortrait(portrait);
-                    else clearPortrait({ stopPropagation: () => {} });
                     renderGMSlots();
                     showToast(`Slot ${n} chargé.`);
                 } catch { showToast('Erreur de chargement.', true); }
@@ -2877,8 +2721,6 @@
                     updateCreationTracker();
                 }
                 updateNFDisplay();
-                const portrait = localStorage.getItem("tv_portrait");
-                if (portrait) applyPortrait(portrait);
                 // Restaurer mode GM
                 if (localStorage.getItem('tv_gm_mode') === '1') {
                     gmMode = true;
