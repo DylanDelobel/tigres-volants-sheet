@@ -1747,22 +1747,47 @@ function forceSave() {
   showToast('Fiche sauvegardée ✓');
 }
 
-function exportJSON() {
+async function _compress(str) {
+  const bytes = new TextEncoder().encode(str);
+  const cs = new CompressionStream('gzip');
+  const w = cs.writable.getWriter();
+  w.write(bytes); w.close();
+  const chunks = [];
+  const reader = cs.readable.getReader();
+  while (true) { const { value, done } = await reader.read(); if (done) break; chunks.push(...value); }
+  return 'TV1:' + btoa(String.fromCharCode(...new Uint8Array(chunks)));
+}
+
+async function _decompress(s) {
+  const b64 = s.startsWith('TV1:') ? s.slice(4) : null;
+  if (!b64) return null;
+  const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const ds = new DecompressionStream('gzip');
+  const w = ds.writable.getWriter();
+  w.write(bytes); w.close();
+  const chunks = [];
+  const reader = ds.readable.getReader();
+  while (true) { const { value, done } = await reader.read(); if (done) break; chunks.push(...value); }
+  return new TextDecoder().decode(new Uint8Array(chunks));
+}
+
+async function exportJSON() {
   toggleSettings();
-  const json = JSON.stringify({ sheet: collectData() });
   const ta = document.getElementById('modal-textarea');
-  ta.value = json;
+  ta.value = '⏳ Compression…';
   ta.readOnly = true;
-  document.getElementById('modal-title').textContent = 'Exporter la fiche';
+  document.getElementById('modal-title').textContent = 'Partager la fiche';
+  document.getElementById('json-modal').classList.add('open');
+  const code = await _compress(JSON.stringify(collectData()));
+  ta.value = code;
   const btn = document.getElementById('modal-action-btn');
   btn.textContent = '📋 Copier';
   btn.onclick = () => {
-    navigator.clipboard.writeText(json).then(() => {
+    navigator.clipboard.writeText(code).then(() => {
       btn.textContent = '✓ Copié !';
       setTimeout(() => { btn.textContent = '📋 Copier'; }, 2000);
     });
   };
-  document.getElementById('json-modal').classList.add('open');
   setTimeout(() => ta.select(), 50);
 }
 
@@ -1771,7 +1796,7 @@ function openImportModal() {
   const ta = document.getElementById('modal-textarea');
   ta.value = '';
   ta.readOnly = false;
-  ta.placeholder = 'Collez le JSON ici…';
+  ta.placeholder = 'Collez le code de fiche ici…';
   document.getElementById('modal-title').textContent = 'Importer une fiche';
   const btn = document.getElementById('modal-action-btn');
   btn.textContent = '📥 Importer';
@@ -1780,17 +1805,24 @@ function openImportModal() {
   setTimeout(() => ta.focus(), 50);
 }
 
-function doImport() {
+async function doImport() {
   const raw = document.getElementById('modal-textarea').value.trim();
   try {
-    const payload = JSON.parse(raw);
-    const data = payload.sheet ?? payload;
+    let data;
+    if (raw.startsWith('TV1:')) {
+      const json = await _decompress(raw);
+      data = JSON.parse(json);
+    } else {
+      // rétrocompat JSON brut
+      const payload = JSON.parse(raw);
+      data = payload.sheet ?? payload;
+    }
     applyData(data);
     localStorage.setItem('tv_sheet', JSON.stringify(collectData()));
     closeJsonModal();
     showToast('Fiche importée ✓');
   } catch {
-    showToast('JSON invalide.', true);
+    showToast('Code invalide.', true);
   }
 }
 
