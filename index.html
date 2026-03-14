@@ -637,7 +637,6 @@
 
     /* ── Équipement textarea ── */
     .equip-textarea {
-      min-height: 160px;
       width: 100%;
       font-size: .85rem;
       line-height: 1.5;
@@ -739,7 +738,7 @@
     }
 
     .desc-portrait-grid textarea {
-      min-height: 300px;
+      resize: none;
     }
 
     .portrait-zone {
@@ -1084,7 +1083,7 @@
 
       <div class="section">
         <div class="section-title">Équipement de base</div>
-        <textarea id="equipement" class="equip-textarea" placeholder="Listez votre équipement de base…"></textarea>
+        <textarea id="equipement" class="equip-textarea" rows="3" placeholder="Listez votre équipement de base…" oninput="autoResize(this)"></textarea>
       </div>
 
     </div><!-- left column -->
@@ -1131,7 +1130,7 @@
       <div class="section">
         <div class="section-title">Description</div>
         <div class="desc-portrait-grid">
-          <textarea id="description" placeholder="Description physique et psychologique du personnage…"></textarea>
+          <textarea id="description" rows="3" placeholder="Description physique et psychologique du personnage…" oninput="autoResize(this)"></textarea>
           <div class="portrait-zone" id="portrait-zone" onclick="triggerPortrait(event)" title="Cliquer pour charger un portrait">
             <input type="file" id="portrait-input" accept="image/*" style="display:none" onchange="loadPortrait(this)">
             <img id="portrait-img" alt="Portrait">
@@ -1145,11 +1144,11 @@
       <div class="grid-auto two-col">
         <div class="section">
           <div class="section-title">Avantages</div>
-          <textarea id="avantages" placeholder="Listez vos avantages..."></textarea>
+          <textarea id="avantages" rows="3" placeholder="Listez vos avantages..." oninput="autoResize(this)"></textarea>
         </div>
         <div class="section">
           <div class="section-title">Défauts</div>
-          <textarea id="defauts" placeholder="Listez vos défauts..."></textarea>
+          <textarea id="defauts" rows="3" placeholder="Listez vos défauts..." oninput="autoResize(this)"></textarea>
         </div>
       </div>
 
@@ -1548,6 +1547,10 @@ function updateCreationTracker() {
   }
 }
 
+function autoResize(ta) {
+  ta.rows = Math.max(3, ta.value.split('\n').length + 1);
+}
+
 function calculate() {
   CHARS.forEach(c => {
     const v = c.deps.reduce((s, d) => s + getV(d), 0);
@@ -1879,7 +1882,13 @@ calculate();
 (function() {
   const raw = localStorage.getItem('tv_sheet');
   if (raw) {
-    try { applyData(JSON.parse(raw)); } catch(e) { updateCreationTracker(); }
+    try {
+      applyData(JSON.parse(raw));
+      ['description','avantages','defauts','equipement'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) autoResize(el);
+      });
+    } catch(e) { updateCreationTracker(); }
   } else {
     document.getElementById('pc_initiaux').value = 400;
     updateCreationTracker();
